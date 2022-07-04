@@ -1,0 +1,35 @@
+version: "3.7"
+# Configuração Rede do Container
+networks:
+    postgres_dev :
+        driver: bridge
+        ipam:
+            config:
+                - subnet: 172.178.${SUBNET}.0/24
+services:
+        dbpostgres:
+            build:
+                args:
+                    user: dev
+                    uid: 1000
+                context: .
+                dockerfile: dockerfile-postgres
+            image: ${IMAGE_NAME}
+            container_name: ${CONTAINER_NAME}
+            restart: unless-stopped
+            environment:
+                POSTGRES_DATABASE: ${DB_DATABASE}
+                POSTGRES_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+                POSTGRES_PASSWORD: ${DB_PASSWORD}
+                POSTGRES_USER: ${DB_USER}
+                SERVICE_TAGS: dev
+                SERVICE_NAME: postgres
+            volumes:
+                - ./db/init/:/docker-entrypoint-initdb.d/
+                - ./db/data:/var/lib/postgresql/data
+            networks:
+                - postgres_dev 
+            ports:
+                - "${DB_EXTERNAL_PORT}:5432"
+            command: postgres -c listen_addresses='*'
+            
